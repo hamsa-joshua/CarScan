@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Used Car Price Prediction</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Used Car Price Prediction</h1>
+        <form id="car-form">
+            <select name="name" id="name"></select>
+            <input type="number" name="year" min="1994" max="2024" placeholder="Year">
+            <input type="number" name="km_driven" placeholder="KMs Driven">
+            <select name="fuel" id="fuel"></select>
+            <select name="seller_type" id="seller_type"></select>
+            <select name="transmission" id="transmission"></select>
+            <select name="owner" id="owner"></select>
+            <input type="number" name="mileage" placeholder="Mileage">
+            <input type="number" name="engine" placeholder="Engine">
+            <input type="number" name="max_power" placeholder="Max Power">
+            <input type="number" name="seats" placeholder="Seats">
+            <button type="submit">Predict Price</button>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        // Load dropdown options from backend
+        async function loadOptions() {
+            const response = await fetch('/get-options');
+            const data = await response.json();
+            for (let field in data) {
+                let select = document.getElementById(field);
+                data[field].forEach(option => {
+                    let opt = document.createElement("option");
+                    opt.value = option;
+                    opt.innerText = option;
+                    select.appendChild(opt);
+                });
+            }
+        }
+
+        document.getElementById('car-form').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            const data = {};
+            formData.forEach((value, key) => { data[key] = value; });
+            const res = await fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            const result = await res.json();
+            document.getElementById('result').innerText = `Predicted Car Price: ₹ ${result.price.toFixed(2)}`;
+        });
+
+        window.onload = loadOptions;
+    </script>
+</body>
+</html>
